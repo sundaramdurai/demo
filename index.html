@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Time Tracker - Daily</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    header {
+      background: #2c3e50;
+      color: white;
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    section {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    section h2 {
+      font-size: 1.3rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid #3498db;
+      padding-bottom: 0.5rem;
+    }
+
+    .form-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    input, select {
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 0.95rem;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #3498db;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    input[type="text"] {
+      flex: 1;
+      min-width: 150px;
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #2980b9;
+    }
+
+    button.delete {
+      background: #e74c3c;
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+    }
+
+    button.delete:hover {
+      background: #c0392b;
+    }
+
+    button.secondary {
+      background: #7f8c8d;
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+    }
+
+    button.secondary:hover {
+      background: #5d6d7b;
+    }
+
+    button.success {
+      background: #27ae60;
+    }
+
+    button.success:hover {
+      background: #229954;
+    }
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background: #f9f9f9;
+      border-radius: 4px;
+      border-left: 4px solid #3498db;
+    }
+
+    .list-item.active {
+      background: #e8f4f8;
+      border-left-color: #27ae60;
+      font-weight: 600;
+    }
+
+    .list-item.task-group {
+      border-left: 4px solid #9b59b6;
+      padding: 0.75rem 1rem;
+      margin-top: 0.5rem;
+      margin-left: 1rem;
+    }
+
+    .list-item-content {
+      flex: 1;
+    }
+
+    .list-item-name {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .list-item-meta {
+      font-size: 0.85rem;
+      color: #7f8c8d;
+    }
+
+    .list-item-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .timer-section {
+      grid-column: 1 / -1;
+    }
+
+    .timer-display {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2rem;
+      border-radius: 8px;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .timer-display h3 {
+      font-size: 1.2rem;
+      opacity: 0.9;
+      margin-bottom: 0.5rem;
+    }
+
+    .timer-display .task-name {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .timer-display .elapsed-time {
+      font-size: 1.5rem;
+      font-family: "Courier New", monospace;
+      font-weight: 600;
+    }
+
+    .timer-controls {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .timer-controls button {
+      flex: 0 1 auto;
+      min-width: 120px;
+    }
+
+    .summary-section {
+      grid-column: 1 / -1;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .summary-card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      color: #2c3e50;
+    }
+
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .summary-item:last-child {
+      border-bottom: none;
+    }
+
+    .summary-item-name {
+      font-weight: 600;
+    }
+
+    .summary-item-time {
+      font-family: "Courier New", monospace;
+      font-weight: 600;
+      color: #3498db;
+    }
+
+    .total-row {
+      background: #f0f0f0;
+      padding: 0.75rem;
+      border-radius: 4px;
+      margin-top: 0.5rem;
+      font-weight: 700;
+    }
+
+    .empty-state {
+      padding: 2rem;
+      text-align: center;
+      color: #7f8c8d;
+      font-style: italic;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .success-message {
+      padding: 1rem;
+      background: #d4edda;
+      color: #155724;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .success-message.show {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>⏱️ Time Tracker</h1>
+    <p id="today-date"></p>
+  </header>
+
+  <main>
+    <!-- Projects Section -->
+    <section>
+      <h2>Projects</h2>
+      <div id="projects-message" class="success-message"></div>
+      <div class="form-group">
+        <input type="text" id="project-name" placeholder="New project name" maxlength="50">
+        <button onclick="createProject()">Add Project</button>
+      </div>
+      <div id="projects-list" class="list"></div>
+    </section>
+
+    <!-- Tasks Section -->
+    <section>
+      <h2>Tasks</h2>
+      <div id="tasks-message" class="success-message"></div>
+      <div class="form-group">
+        <input type="text" id="task-name" placeholder="New task name" maxlength="50">
+        <select id="task-project">
+          <option value="">Select project...</option>
+        </select>
+        <button onclick="createTask()">Add Task</button>
+      </div>
+      <div id="tasks-list" class="list"></div>
+    </section>
+
+    <!-- Timer Section -->
+    <section class="timer-section">
+      <h2>Today's Timer</h2>
+      <div class="timer-display" id="timer-display">
+        <h3>No active timer</h3>
+        <div class="task-name">—</div>
+        <div class="elapsed-time">00:00</div>
+      </div>
+      <div class="form-group">
+        <select id="task-select" style="flex: 1; min-width: 200px;">
+          <option value="">Select task to start...</option>
+        </select>
+        <button id="start-btn" onclick="startTimer()" style="display: none;">Start</button>
+        <button id="stop-btn" class="success" onclick="stopTimer()" style="display: none;">Stop Timer</button>
+      </div>
+      <div id="entries-list" class="list"></div>
+    </section>
+
+    <!-- Summary Section -->
+    <section class="summary-section">
+      <h2>Today's Summary</h2>
+      <div class="summary-grid">
+        <div class="summary-card">
+          <h3>Time by Task</h3>
+          <div id="summary-tasks"></div>
+        </div>
+        <div class="summary-card">
+          <h3>Time by Project</h3>
+          <div id="summary-projects"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // ============================================
+    // STATE MANAGEMENT
+    // ============================================
+
+    let state = {
+      projects: [],
+      tasks: [],
+      entries: []
+    };
+
+    const STORAGE_KEY = 'timeTrackerData';
+    let timerInterval = null;
+
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+
+    function initApp() {
+      loadState();
+      renderAll();
+      updateTodayDate();
+      startTimerTick();
+    }
+
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        state = JSON.parse(saved);
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function updateTodayDate() {
+      const today = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('today-date').textContent = today.toLocaleDateString('en-US', options);
+    }
+
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
+
+    function generateId() {
+      return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
+    function getTodayString() {
+      const today = new Date();
+      return today.toISOString().split('T')[0];
+    }
+
+    function getCurrentTime() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      return `${hours}:${minutes}`;
+    }
+
+    function timeStringToMinutes(timeStr) {
+      const [hours, minutes] = timeStr.split(':').map(Number);
+      return hours * 60 + minutes;
+    }
+
+    function minutesToTimeString(totalMinutes) {
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+    }
+
+    function formatDuration(minutes) {
+      if (minutes < 60) {
+        return `${minutes}m`;
+      }
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+    }
+
+    function getActiveEntry() {
+      const today = getTodayString();
+      return state.entries.find(e => e.date === today && e.endTime === null);
+    }
+
+    function getTodayEntries() {
+      const today = getTodayString();
+      return state.entries.filter(e => e.date === today);
+    }
+
+    // ============================================
+    // CALCULATION FUNCTIONS
+    // ============================================
+
+    function calculateTaskTotal(taskId) {
+      const entries = getTodayEntries();
+      let total = 0;
+      entries.forEach(entry => {
+        if (entry.taskId === taskId && entry.endTime !== null) {
+          const startMin = timeStringToMinutes(entry.startTime);
+          const endMin = timeStringToMinutes(entry.endTime);
+          total += endMin - startMin;
+        }
+      });
+      return total;
+    }
+
+    function calculateProjectTotal(projectId) {
+      const tasks = state.tasks.filter(t => t.projectId === projectId);
+      let total = 0;
+      tasks.forEach(task => {
+        total += calculateTaskTotal(task.id);
+      });
+      return total;
+    }
+
+    function getElapsedTimeForActiveTask() {
+      const active = getActiveEntry();
+      if (!active) return 0;
+      
+      const startMin = timeStringToMinutes(active.startTime);
+      const nowMin = timeStringToMinutes(getCurrentTime());
+      return Math.max(0, nowMin - startMin);
+    }
+
+    // ============================================
+    // PROJECT OPERATIONS
+    // ============================================
+
+    function createProject() {
+      const nameInput = document.getElementById('project-name');
+      const name = nameInput.value.trim();
+
+      if (!name) {
+        showMessage('projects-message', '⚠️ Project name required', 2000);
+        return;
+      }
+
+      if (state.projects.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+        showMessage('projects-message', '⚠️ Project already exists', 2000);
+        return;
+      }
+
+      state.projects.push({
+        id: generateId(),
+        name: name
+      });
+
+      saveState();
+      nameInput.value = '';
+      renderAll();
+      showMessage('projects-message', '✓ Project created', 1500);
+    }
+
+    function deleteProject(projectId) {
+      if (!confirm('Delete this project? Tasks will not be deleted.')) return;
+
+      state.projects = state.projects.filter(p => p.id !== projectId);
+      saveState();
+      renderAll();
+      showMessage('projects-message', '✓ Project deleted', 1500);
+    }
+
+    // ============================================
+    // TASK OPERATIONS
+    // ============================================
+
+    function createTask() {
+      const nameInput = document.getElementById('task-name');
+      const projectSelect = document.getElementById('task-project');
+      const name = nameInput.value.trim();
+      const projectId = projectSelect.value;
+
+      if (!name) {
+        showMessage('tasks-message', '⚠️ Task name required', 2000);
+        return;
+      }
+
+      if (!projectId) {
+        showMessage('tasks-message', '⚠️ Select a project', 2000);
+        return;
+      }
+
+      state.tasks.push({
+        id: generateId(),
+        projectId: projectId,
+        name: name
+      });
+
+      saveState();
+      nameInput.value = '';
+      projectSelect.value = '';
+      renderAll();
+      showMessage('tasks-message', '✓ Task created', 1500);
+    }
+
+    function deleteTask(taskId) {
+      if (!confirm('Delete this task? Time entries will remain.')) return;
+
+      state.tasks = state.tasks.filter(t => t.id !== taskId);
+      saveState();
+      renderAll();
+      showMessage('tasks-message', '✓ Task deleted', 1500);
+    }
+
+    // ============================================
+    // TIMER OPERATIONS
+    // ============================================
+
+    function startTimer() {
+      const taskSelect = document.getElementById('task-select');
+      const taskId = taskSelect.value;
+
+      if (!taskId) {
+        showMessage('projects-message', '⚠️ Select a task first', 2000);
+        return;
+      }
+
+      // Stop any active entry
+      const active = getActiveEntry();
+      if (active) {
+        active.endTime = getCurrentTime();
+      }
+
+      // Create new entry
+      const newEntry = {
+        id: generateId(),
+        taskId: taskId,
+        date: getTodayString(),
+        startTime: getCurrentTime(),
+        endTime: null
+      };
+
+      state.entries.push(newEntry);
+      saveState();
+      taskSelect.value = '';
+      renderAll();
+      startTimerTick();
+    }
+
+    function stopTimer() {
+      const active = getActiveEntry();
+      if (!active) return;
+
+      active.endTime = getCurrentTime();
+      saveState();
+      renderAll();
+    }
+
+    function deleteEntry(entryId) {
+      if (!confirm('Delete this time entry?')) return;
+
+      state.entries = state.entries.filter(e => e.id !== entryId);
+      saveState();
+      renderAll();
+    }
+
+    // ============================================
+    // TIMER TICK (UPDATE ELAPSED TIME)
+    // ============================================
+
+    function startTimerTick() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        updateTimerDisplay();
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const active = getActiveEntry();
+      const displayDiv = document.getElementById('timer-display');
+
+      if (!active) {
+        displayDiv.innerHTML = `
+          <h3>No active timer</h3>
+          <div class="task-name">—</div>
+          <div class="elapsed-time">00:00</div>
+        `;
+        return;
+      }
+
+      const task = state.tasks.find(t => t.id === active.taskId);
+      const elapsed = getElapsedTimeForActiveTask();
+      const timeStr = minutesToTimeString(elapsed);
+
+      displayDiv.innerHTML = `
+        <h3>Active now</h3>
+        <div class="task-name">${task ? task.name : 'Unknown'}</div>
+        <div class="elapsed-time">${timeStr}</div>
+      `;
+    }
+
+    // ============================================
+    // RENDER FUNCTIONS
+    // ============================================
+
+    function renderProjects() {
+      const list = document.getElementById('projects-list');
+      const select = document.getElementById('task-project');
+
+      if (state.projects.length === 0) {
+        list.innerHTML = '<div class="empty-state">No projects yet. Create one to get started.</div>';
+        select.innerHTML = '<option value="">Select project...</option>';
+        return;
+      }
+
+      list.innerHTML = state.projects.map(project => `
+        <div class="list-item">
+          <div class="list-item-content">
+            <div class="list-item-name">${project.name}</div>
+            <div class="list-item-meta">${state.tasks.filter(t => t.projectId === project.id).length} tasks</div>
+          </div>
+          <div class="list-item-actions">
+            <button class="delete" onclick="deleteProject('${project.id}')">Delete</button>
+          </div>
+        </div>
+      `).join('');
+
+      select.innerHTML = '<option value="">Select project...</option>' + state.projects.map(p => `
+        <option value="${p.id}">${p.name}</option>
+      `).join('');
+    }
+
+    function renderTasks() {
+      const list = document.getElementById('tasks-list');
+      const select = document.getElementById('task-select');
+      const active = getActiveEntry();
+
+      if (state.tasks.length === 0) {
+        list.innerHTML = '<div class="empty-state">No tasks yet. Create one to start tracking.</div>';
+        select.innerHTML = '<option value="">Select task to start...</option>';
+        return;
+      }
+
+      // Group tasks by project
+      let html = '';
+      state.projects.forEach(project => {
+        const projectTasks = state.tasks.filter(t => t.projectId === project.id);
+        if (projectTasks.length > 0) {
+          html += `<div class="list-item"><strong>${project.name}</strong></div>`;
+          projectTasks.forEach(task => {
+            const isActive = active && active.taskId === task.id;
+            html += `
+              <div class="list-item task-group ${isActive ? 'active' : ''}">
+                <div class="list-item-content">
+                  <div class="list-item-name">${task.name}</div>
+                  <div class="list-item-meta">Today: ${formatDuration(calculateTaskTotal(task.id))}</div>
+                </div>
+                <div class="list-item-actions">
+                  <button class="delete" onclick="deleteTask('${task.id}')">Delete</button>
+                </div>
+              </div>
+            `;
+          });
+        }
+      });
+
+      list.innerHTML = html || '<div class="empty-state">No tasks in any project.</div>';
+
+      // Populate task selector
+      select.innerHTML = '<option value="">Select task to start...</option>' + state.tasks.map(t => {
+        const project = state.projects.find(p => p.id === t.projectId);
+        return `<option value="${t.id}">${t.name} (${project ? project.name : 'Unknown'})</option>`;
+      }).join('');
+    }
+
+    function renderEntries() {
+      const list = document.getElementById('entries-list');
+      const entries = getTodayEntries().filter(e => e.endTime !== null);
+
+      if (entries.length === 0) {
+        list.innerHTML = '<div class="empty-state">No completed time entries yet.</div>';
+        return;
+      }
+
+      list.innerHTML = entries.map(entry => {
+        const task = state.tasks.find(t => t.id === entry.taskId);
+        const duration = timeStringToMinutes(entry.endTime) - timeStringToMinutes(entry.startTime);
+        return `
+          <div class="list-item">
+            <div class="list-item-content">
+              <div class="list-item-name">${task ? task.name : 'Unknown'}</div>
+              <div class="list-item-meta">${entry.startTime} - ${entry.endTime} (${formatDuration(duration)})</div>
+            </div>
+            <div class="list-item-actions">
+              <button class="delete" onclick="deleteEntry('${entry.id}')">Delete</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderSummary() {
+      const tasksDiv = document.getElementById('summary-tasks');
+      const projectsDiv = document.getElementById('summary-projects');
+
+      // Tasks summary
+      const tasksWithTime = state.tasks
+        .map(task => ({
+          id: task.id,
+          name: task.name,
+          minutes: calculateTaskTotal(task.id)
+        }))
+        .filter(t => t.minutes > 0)
+        .sort((a, b) => b.minutes - a.minutes);
+
+      if (tasksWithTime.length === 0) {
+        tasksDiv.innerHTML = '<div style="color: #7f8c8d; font-style: italic;">No time tracked yet.</div>';
+      } else {
+        const totalTasksMinutes = tasksWithTime.reduce((sum, t) => sum + t.minutes, 0);
+        tasksDiv.innerHTML = tasksWithTime.map(task => `
+          <div class="summary-item">
+            <span class="summary-item-name">${task.name}</span>
+            <span class="summary-item-time">${formatDuration(task.minutes)}</span>
+          </div>
+        `).join('') + `
+          <div class="summary-item total-row">
+            <span>Total</span>
+            <span>${formatDuration(totalTasksMinutes)}</span>
+          </div>
+        `;
+      }
+
+      // Projects summary
+      const projectsWithTime = state.projects
+        .map(project => ({
+          id: project.id,
+          name: project.name,
+          minutes: calculateProjectTotal(project.id)
+        }))
+        .filter(p => p.minutes > 0)
+        .sort((a, b) => b.minutes - a.minutes);
+
+      if (projectsWithTime.length === 0) {
+        projectsDiv.innerHTML = '<div style="color: #7f8c8d; font-style: italic;">No time tracked yet.</div>';
+      } else {
+        const totalProjectsMinutes = projectsWithTime.reduce((sum, p) => sum + p.minutes, 0);
+        projectsDiv.innerHTML = projectsWithTime.map(project => `
+          <div class="summary-item">
+            <span class="summary-item-name">${project.name}</span>
+            <span class="summary-item-time">${formatDuration(project.minutes)}</span>
+          </div>
+        `).join('') + `
+          <div class="summary-item total-row">
+            <span>Total</span>
+            <span>${formatDuration(totalProjectsMinutes)}</span>
+          </div>
+        `;
+      }
+    }
+
+    function updateTimerButtons() {
+      const active = getActiveEntry();
+      const startBtn = document.getElementById('start-btn');
+      const stopBtn = document.getElementById('stop-btn');
+
+      if (active) {
+        startBtn.style.display = 'none';
+        stopBtn.style.display = 'block';
+      } else {
+        startBtn.style.display = 'block';
+        stopBtn.style.display = 'none';
+      }
+    }
+
+    function renderAll() {
+      renderProjects();
+      renderTasks();
+      renderEntries();
+      renderSummary();
+      updateTimerDisplay();
+      updateTimerButtons();
+    }
+
+    // ============================================
+    // UI HELPERS
+    // ============================================
+
+    function showMessage(elementId, message, duration) {
+      const element = document.getElementById(elementId);
+      element.textContent = message;
+      element.classList.add('show');
+      setTimeout(() => {
+        element.classList.remove('show');
+      }, duration);
+    }
+
+    // ============================================
+    // START APP
+    // ============================================
+
+    initApp();
+  </script>
+</body>
+</html>
